@@ -1,0 +1,7 @@
+{
+  "name": "System Data Pelanggaran - Brigif 4/DR",
+  "description": "A comprehensive military law violation management system for Brigif 4/Dewa Ratna, featuring real-time statistics, secure database management, and AI-powered legal analysis.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
