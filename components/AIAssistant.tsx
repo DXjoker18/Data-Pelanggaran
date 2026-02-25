@@ -32,28 +32,31 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ data }) => {
     setIsTyping(true);
 
     try {
+      // FIX: Ensure GoogleGenAI initialization and model choice match current guidelines
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
-      // Construct context from existing data
+      // Construct context from existing data including pasal
       const dataSummary = data.length > 0 
-        ? `Berikut adalah ringkasan data pelanggaran saat ini: ${data.length} kasus total, dengan rincian perkara: ${Array.from(new Set(data.map(d => d.perkara))).join(', ')}.`
+        ? `Berikut adalah ringkasan data pelanggaran saat ini: ${data.length} kasus total. 
+           Beberapa pasal/perkara yang tercatat: ${data.slice(0, 10).map(d => `${d.perkara} (${d.pasal})`).join(', ')}.`
         : "Saat ini database masih kosong.";
 
       const prompt = `
         Anda adalah AI Asisten Hukum untuk Brigade Infanteri 4/Dewa Ratna (Brigif 4/DR) Kodam IV/Diponegoro.
         Tugas Anda:
-        1. Menganalisis data pelanggaran hukum di satuan.
-        2. Memberikan saran berdasarkan KUHP Militer (KUHPM) atau Peraturan Disiplin Militer (PDM).
+        1. Menganalisis data pelanggaran hukum di satuan (berdasarkan kategori perkara dan pasal spesifik).
+        2. Memberikan saran berdasarkan KUHP Militer (KUHPM), Peraturan Disiplin Militer (PDM), atau UU terkait lainnya.
         3. Menjawab pertanyaan seputar prosedur hukum di lingkungan TNI AD.
         
-        Konteks Satuan: ${dataSummary}
+        Konteks Satuan saat ini: ${dataSummary}
         Pertanyaan User: ${userMsg}
         
-        Berikan jawaban yang profesional, tegas (ala militer), namun tetap membantu dan edukatif. Jika berkaitan dengan hukuman, tekankan pada upaya pembinaan dan pencegahan.
+        Berikan jawaban yang profesional, tegas (ala militer), namun tetap membantu dan edukatif. Jika berkaitan dengan hukuman, tekankan pada upaya pembinaan, pencegahan, dan kepatuhan terhadap hukum yang berlaku.
       `;
 
+      // FIX: Use gemini-3-pro-preview for complex reasoning and follow correct extraction method for text
       const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-3-pro-preview',
         contents: prompt,
       });
 
@@ -107,7 +110,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ data }) => {
         <div className="relative group">
           <input 
             type="text" 
-            placeholder="Tanyakan sesuatu..."
+            placeholder="Tanyakan analisis pasal atau aturan hukum..."
             className="w-full pl-6 pr-14 py-4 bg-white rounded-2xl shadow-sm outline-none focus:ring-2 focus:ring-green-500 text-xs font-bold"
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -121,7 +124,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ data }) => {
             <i className="fas fa-paper-plane text-xs"></i>
           </button>
         </div>
-        <p className="text-[8px] text-gray-400 text-center mt-3 font-medium">AI dapat membuat kesalahan. Harap verifikasi informasi penting ke Perwira Hukum.</p>
+        <p className="text-[8px] text-gray-400 text-center mt-3 font-medium uppercase tracking-widest">Prajurit yang Unggul adalah Prajurit yang Melek Hukum</p>
       </div>
     </div>
   );

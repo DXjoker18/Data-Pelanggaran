@@ -13,15 +13,55 @@
     <!-- PDF Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
+        :root {
+            /* Default Jungle / Army Theme Variables */
+            --primary-gradient: linear-gradient(135deg, #2d3a2a 0%, #1a2418 100%);
+            --accent-color: #22c55e; /* green-500 */
+            --accent-light: #dcfce7; /* green-100 */
+            --accent-dark: #166534; /* green-800 */
+        }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: #f8fafc;
+            transition: background-color 0.3s ease;
         }
         .army-gradient {
-            background: linear-gradient(135deg, #2d3a2a 0%, #1a2418 100%);
+            background: var(--primary-gradient);
+            transition: background 0.3s ease;
         }
+        .text-accent { color: var(--accent-color); }
+        .bg-accent { background-color: var(--accent-color); }
+        .border-accent { border-color: var(--accent-color); }
+        .bg-accent-light { background-color: var(--accent-light); }
+        .text-accent-dark { color: var(--accent-dark); }
+
         @media print {
             .no-print { display: none; }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-pop { animation: fadeIn 0.4s ease-out forwards; }
+        
+        @keyframes pop {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop { animation: pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+        @keyframes wiggle {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(10deg); }
+            50% { transform: rotate(-10deg); }
+            75% { transform: rotate(5deg); }
+            100% { transform: rotate(0deg); }
+        }
+        .animate-wiggle {
+            animation: wiggle 0.5s ease-in-out infinite;
+            animation-iteration-count: 2;
         }
     </style>
 <script type="importmap">
@@ -35,8 +75,10 @@
   }
 }
 </script>
+<link rel="stylesheet" href="/index.css">
 </head>
 <body>
     <div id="root"></div>
+<script type="module" src="/index.tsx"></script>
 </body>
 </html>

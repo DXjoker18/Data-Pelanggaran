@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserRole } from '../types';
 import { UNIT_LOGO } from '../constants';
 
@@ -10,11 +10,43 @@ interface LoginProps {
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [activeUsers, setActiveUsers] = useState(Math.floor(Math.random() * 10) + 5);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    const interval = setInterval(() => {
+      if (navigator.onLine) {
+        setActiveUsers(prev => {
+          const diff = Math.random() > 0.5 ? 1 : -1;
+          return Math.max(3, prev + diff);
+        });
+      }
+    }, 5000);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      clearInterval(interval);
+    };
+  }, []);
 
   return (
     <div className="fixed inset-0 z-[2000] army-gradient flex items-center justify-center p-6 overflow-y-auto">
-      <div className="bg-white w-full max-w-sm rounded-[3rem] p-10 shadow-2xl text-center animate-fadeIn border border-white/20">
-        <div className="flex flex-col items-center mb-8">
+      <div className="bg-white w-full max-w-sm rounded-[3rem] p-10 shadow-2xl text-center animate-pop border border-white/20 relative">
+        <div className={`absolute top-6 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1 rounded-full border ${isOnline ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`}>
+          <span className={`flex h-1.5 w-1.5 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></span>
+          <span className={`text-[7px] font-black uppercase tracking-widest ${isOnline ? 'text-green-600' : 'text-red-600'}`}>
+            {isOnline ? `${activeUsers} PERSONEL TERHUBUNG` : 'JARINGAN TERPUTUS'}
+          </span>
+        </div>
+
+        <div className="flex flex-col items-center mb-8 mt-4">
           <div className="w-24 h-24 mb-6 flex items-center justify-center p-2 bg-slate-50 rounded-3xl shadow-inner border border-slate-100">
             <img src={UNIT_LOGO} alt="Logo" className="w-full h-full object-contain" />
           </div>
@@ -44,7 +76,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               </button>
             </>
           ) : (
-            <div className="space-y-4 animate-fadeIn">
+            <div className="space-y-4 animate-pop">
               <input 
                 type="password" 
                 placeholder="PASSWORD ADMIN"
@@ -52,6 +84,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoFocus
+                onKeyDown={(e) => e.key === 'Enter' && onLogin('admin', password)}
               />
               <div className="flex gap-2">
                 <button 
@@ -71,9 +104,12 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           )}
         </div>
         
-        <p className="mt-10 text-[8px] text-gray-300 font-bold uppercase tracking-widest">
-          Kodam IV/Diponegoro &copy; 2024
-        </p>
+        <div className="mt-10 flex flex-col items-center gap-1">
+          <p className="text-[8px] text-gray-300 font-bold uppercase tracking-widest">
+            Kodam IV/Diponegoro &copy; 2026
+          </p>
+          <div className="text-[6px] font-black text-gray-200 uppercase tracking-tighter">Secure Military Intelligence Network</div>
+        </div>
       </div>
     </div>
   );

@@ -13,12 +13,14 @@ interface DatabaseProps {
 const Database: React.FC<DatabaseProps> = ({ data, role, onEdit, onDelete }) => {
   const [search, setSearch] = useState('');
   const [selectedRecord, setSelectedRecord] = useState<ViolationRecord | null>(null);
+  const [recordToDelete, setRecordToDelete] = useState<ViolationRecord | null>(null);
 
   const filtered = data.filter(d => 
     d.nama.toLowerCase().includes(search.toLowerCase()) ||
     d.nrp.includes(search) ||
     d.satuan.toLowerCase().includes(search.toLowerCase()) ||
     d.perkara.toLowerCase().includes(search.toLowerCase()) ||
+    (d.pasal && d.pasal.toLowerCase().includes(search.toLowerCase())) ||
     (d.ketTindakan && d.ketTindakan.toLowerCase().includes(search.toLowerCase()))
   );
 
@@ -48,6 +50,10 @@ const Database: React.FC<DatabaseProps> = ({ data, role, onEdit, onDelete }) => 
           <tr style="border-bottom: 1px solid #eee;">
             <td style="padding: 10px 0; font-weight: bold;">Jenis Perkara</td>
             <td style="padding: 10px 0;">: ${record.perkara}</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 10px 0; font-weight: bold;">Pasal / Dasar Hukum</td>
+            <td style="padding: 10px 0;">: ${record.pasal || '-'}</td>
           </tr>
           <tr style="border-bottom: 1px solid #eee;">
             <td style="padding: 10px 0; font-weight: bold;">Tanggal Kejadian</td>
@@ -98,7 +104,7 @@ const Database: React.FC<DatabaseProps> = ({ data, role, onEdit, onDelete }) => 
               <th style="border: 1px solid #ddd; padding: 8px;">No</th>
               <th style="border: 1px solid #ddd; padding: 8px;">Nama / Pkt / NRP</th>
               <th style="border: 1px solid #ddd; padding: 8px;">Satuan</th>
-              <th style="border: 1px solid #ddd; padding: 8px;">Perkara</th>
+              <th style="border: 1px solid #ddd; padding: 8px;">Perkara (Pasal)</th>
               <th style="border: 1px solid #ddd; padding: 8px;">Status</th>
               <th style="border: 1px solid #ddd; padding: 8px;">Tanggal</th>
             </tr>
@@ -109,7 +115,7 @@ const Database: React.FC<DatabaseProps> = ({ data, role, onEdit, onDelete }) => 
                 <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
                 <td style="border: 1px solid #ddd; padding: 8px;">${item.nama}<br><span style="color: #666;">${item.pangkat} / ${item.nrp}</span></td>
                 <td style="border: 1px solid #ddd; padding: 8px;">${item.satuan}</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">${item.perkara}</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">${item.perkara}<br><span style="font-style: italic; color: #777;">${item.pasal || '-'}</span></td>
                 <td style="border: 1px solid #ddd; padding: 8px;">${item.status}</td>
                 <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${item.tanggal}</td>
               </tr>
@@ -134,19 +140,25 @@ const Database: React.FC<DatabaseProps> = ({ data, role, onEdit, onDelete }) => 
     window.html2pdf().set(opt).from(element).save();
   };
 
+  const confirmDelete = () => {
+    if (recordToDelete) {
+      onDelete(recordToDelete.id);
+      setRecordToDelete(null);
+    }
+  };
+
   return (
     <div className="space-y-4">
-      {/* Search Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-2">
         <div>
           <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Database Personel</h2>
-          <p className="text-[10px] font-bold text-green-600 uppercase">{filtered.length} DATA DITEMUKAN</p>
+          <p className="text-[10px] font-bold text-accent uppercase">{filtered.length} DATA DITEMUKAN</p>
         </div>
         <div className="flex gap-2">
           <button 
             type="button"
             onClick={downloadAllPDF}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-[9px] px-4 py-2.5 rounded-xl font-black uppercase tracking-widest shadow-md transition-all active:scale-95 flex items-center gap-2"
+            className="army-gradient text-white text-[9px] px-4 py-2.5 rounded-xl font-black uppercase tracking-widest shadow-md transition-all active:scale-95 flex items-center gap-2"
           >
             <i className="fas fa-file-export"></i> Rekap PDF
           </button>
@@ -154,8 +166,8 @@ const Database: React.FC<DatabaseProps> = ({ data, role, onEdit, onDelete }) => 
             <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
             <input 
               type="text" 
-              placeholder="Cari Data..."
-              className="w-full pl-10 pr-4 py-2.5 bg-white rounded-xl shadow-sm border border-gray-100 outline-none focus:ring-2 focus:ring-green-500 text-[11px] font-bold transition-all"
+              placeholder="Cari Nama, NRP, atau Pasal..."
+              className="w-full pl-10 pr-4 py-2.5 bg-white rounded-xl shadow-sm border border-gray-100 outline-none focus:ring-2 focus:ring-accent text-[11px] font-bold transition-all"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -163,62 +175,42 @@ const Database: React.FC<DatabaseProps> = ({ data, role, onEdit, onDelete }) => 
         </div>
       </div>
 
-      {/* Grid List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filtered.map(item => (
-          <div key={item.id} className="bg-white p-5 rounded-[2rem] border border-gray-50 shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 army-gradient rounded-2xl flex items-center justify-center text-white font-bold uppercase text-[9px] shadow-inner">
-                {item.pangkat.substring(0, 3)}
-              </div>
-              <div>
-                <h4 className="text-xs font-black text-gray-800 uppercase leading-tight">{item.nama}</h4>
-                <p className="text-[9px] font-bold text-gray-400 mt-0.5">{item.pangkat} / {item.nrp} - {item.satuan}</p>
-                <div className="flex flex-wrap items-center gap-2 mt-2">
-                  <span className={`text-[8px] px-2 py-0.5 rounded-full font-bold uppercase ${
-                    item.status === 'Selesai' ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'
-                  }`}>
-                    {item.status}
-                  </span>
-                  {item.status === 'Proses Hukum' && item.ketTindakan && (
-                    <span className="text-[8px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-600 font-bold uppercase">
-                      {item.ketTindakan}
-                    </span>
-                  )}
-                  <span className="text-[8px] font-bold text-gray-300 uppercase">{item.perkara}</span>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-10">
+        {filtered.map((item) => (
+          <div key={item.id} className="bg-white rounded-3xl p-5 shadow-sm border border-gray-50 hover:shadow-md transition-all group relative overflow-hidden">
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center p-1 border border-slate-100">
+                  <img src={UNIT_LOGO} alt="Unit" className="w-full h-full object-contain opacity-40" />
+                </div>
+                <div>
+                  <h4 className="text-[11px] font-black text-gray-800 uppercase leading-none">{item.nama}</h4>
+                  <p className="text-[9px] font-bold text-gray-400 mt-1 uppercase tracking-wider">{item.pangkat} / {item.nrp}</p>
                 </div>
               </div>
+              <div className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase ${item.status === 'Selesai' ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'}`}>
+                {item.status}
+              </div>
             </div>
-            <div className="flex gap-2">
-              <button 
-                type="button"
-                onClick={() => setSelectedRecord(item)}
-                className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors"
-                title="Lihat Detail"
-              >
-                <i className="fas fa-eye text-xs"></i>
-              </button>
+
+            <div className="space-y-2 mb-4">
+              <div className="flex justify-between items-center text-[9px] font-bold uppercase">
+                <span className="text-gray-400">Satuan</span>
+                <span className="text-gray-700">{item.satuan}</span>
+              </div>
+              <div className="flex flex-col text-[9px] font-bold uppercase">
+                <span className="text-gray-400 mb-1">Perkara & Pasal</span>
+                <span className="text-accent">{item.perkara}</span>
+                <span className="text-gray-500 italic mt-0.5 normal-case font-semibold">{item.pasal || 'Pasal belum diisi'}</span>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2 border-t border-gray-50">
+              <button onClick={() => setSelectedRecord(item)} className="flex-1 py-2 rounded-xl bg-slate-50 text-[8px] font-black uppercase tracking-widest text-gray-500 hover:bg-slate-100 transition-all">Detail</button>
               {role === 'admin' && (
                 <>
-                  <button 
-                    type="button"
-                    onClick={() => onEdit(item)}
-                    className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-400 hover:bg-blue-100 transition-colors"
-                    title="Edit Data"
-                  >
-                    <i className="fas fa-edit text-xs"></i>
-                  </button>
-                  {/* Tombol Delete hanya muncul jika status 'Selesai' */}
-                  {item.status === 'Selesai' && (
-                    <button 
-                      type="button"
-                      onClick={() => onDelete(item.id)}
-                      className="w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center text-red-400 hover:bg-red-100 transition-colors"
-                      title="Hapus Data (Selesai)"
-                    >
-                      <i className="fas fa-trash text-xs"></i>
-                    </button>
-                  )}
+                  <button onClick={() => onEdit(item)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-blue-50 text-blue-500 hover:bg-blue-100 transition-all"><i className="fas fa-edit text-[10px]"></i></button>
+                  <button onClick={() => setRecordToDelete(item)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-all"><i className="fas fa-trash text-[10px]"></i></button>
                 </>
               )}
             </div>
@@ -226,63 +218,55 @@ const Database: React.FC<DatabaseProps> = ({ data, role, onEdit, onDelete }) => 
         ))}
       </div>
 
-      {filtered.length === 0 && (
-        <div className="py-20 text-center opacity-20">
-          <i className="fas fa-folder-open text-5xl mb-4"></i>
-          <p className="font-black uppercase tracking-[0.3em]">Tidak Ada Data</p>
+      {/* Detail Modal */}
+      {selectedRecord && (
+        <div className="fixed inset-0 z-[2000] bg-black/80 backdrop-blur-md flex items-center justify-center p-6 overflow-y-auto">
+          <div className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl animate-pop relative">
+            <button onClick={() => setSelectedRecord(null)} className="absolute top-6 right-6 w-10 h-10 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-gray-500 transition-all"><i className="fas fa-times"></i></button>
+            <div className="army-gradient p-8 text-white">
+              <h3 className="text-lg font-black uppercase tracking-tighter mb-1">{selectedRecord.nama}</h3>
+              <p className="text-[10px] font-bold uppercase tracking-widest opacity-80">{selectedRecord.pangkat} / {selectedRecord.nrp}</p>
+            </div>
+            <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto">
+              <div className="grid grid-cols-2 gap-6">
+                <DetailItem label="Satuan" value={selectedRecord.satuan} />
+                <DetailItem label="Jabatan" value={selectedRecord.jabatan} />
+                <DetailItem label="Jenis Perkara" value={selectedRecord.perkara} />
+                <DetailItem label="Pasal / Dasar Hukum" value={selectedRecord.pasal || '-'} />
+                <DetailItem label="Tanggal" value={selectedRecord.tanggal} />
+                <DetailItem label="Status" value={`${selectedRecord.status} ${selectedRecord.ketTindakan ? `(${selectedRecord.ketTindakan})` : ''}`} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Kronologis Singkat</label>
+                <div className="bg-slate-50 p-5 rounded-2xl text-[11px] leading-relaxed text-gray-700 font-medium whitespace-pre-wrap">
+                  {selectedRecord.kronologis}
+                </div>
+              </div>
+            </div>
+            <div className="p-4 bg-gray-50 border-t flex gap-2">
+              <button onClick={() => downloadSinglePDF(selectedRecord)} className="flex-1 army-gradient py-4 rounded-xl text-white font-black text-[10px] uppercase tracking-widest shadow-lg">Cetak PDF</button>
+              <button onClick={() => setSelectedRecord(null)} className="flex-1 bg-white py-4 rounded-xl text-gray-400 font-black text-[10px] uppercase border border-gray-200">Tutup</button>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Detail Modal */}
-      {selectedRecord && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl animate-pop">
-            <div className="army-gradient p-6 text-white text-center flex flex-col items-center">
-              <img src={UNIT_LOGO} alt="Logo" className="w-12 h-12 object-contain mb-3 bg-white/20 p-1 rounded-lg" />
-              <h2 className="font-black text-sm uppercase tracking-widest">Detail Perkara Personel</h2>
-              <p className="text-[8px] text-green-400 font-bold tracking-[0.2em] mt-1 uppercase">Brigif 4/Dewa Ratna</p>
+      {/* Delete Modal */}
+      {recordToDelete && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[1000] flex items-center justify-center p-6">
+          <div className="bg-white w-full max-w-sm rounded-[2.5rem] overflow-hidden shadow-2xl animate-pop">
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i className="fas fa-exclamation-triangle"></i>
+              </div>
+              <h3 className="font-black text-gray-900 uppercase text-xs mb-2">Konfirmasi Hapus</h3>
+              <p className="text-[10px] text-gray-500 font-bold leading-relaxed">
+                Apakah Anda yakin ingin menghapus data hukum atas nama <span className="text-red-500">{recordToDelete.nama}</span>? Tindakan ini tidak dapat dibatalkan.
+              </p>
             </div>
-            <div className="p-8 space-y-4 max-h-[60vh] overflow-y-auto">
-              <DetailItem label="Nama Lengkap" value={selectedRecord.nama} />
-              <div className="grid grid-cols-2 gap-4">
-                <DetailItem label="Pangkat / NRP" value={`${selectedRecord.pangkat} / ${selectedRecord.nrp}`} />
-                <DetailItem label="Jabatan" value={selectedRecord.jabatan} />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <DetailItem label="Satuan" value={selectedRecord.satuan} />
-                <DetailItem label="Jenis Perkara" value={selectedRecord.perkara} />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <DetailItem label="Tanggal Kejadian" value={selectedRecord.tanggal} />
-                <DetailItem label="Status Hukum" value={selectedRecord.status} highlight={selectedRecord.status === 'Selesai' ? 'text-green-600' : 'text-orange-500'} />
-              </div>
-              {selectedRecord.status === 'Proses Hukum' && selectedRecord.ketTindakan && (
-                <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100">
-                  <DetailItem label="Ket Tindakan Saat Ini" value={selectedRecord.ketTindakan} highlight="text-blue-700" />
-                </div>
-              )}
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <label className="text-[9px] font-black text-gray-400 uppercase block mb-2">Kronologis Kejadian</label>
-                <p className="text-[11px] text-gray-600 leading-relaxed text-justify bg-slate-50 p-4 rounded-2xl border border-slate-100 italic shadow-inner">
-                  "{selectedRecord.kronologis}"
-                </p>
-              </div>
-            </div>
-            <div className="p-4 bg-gray-50 border-t flex justify-between gap-3">
-              <button 
-                type="button"
-                onClick={() => downloadSinglePDF(selectedRecord)}
-                className="bg-green-600 hover:bg-green-700 text-white text-[10px] px-6 py-3 rounded-xl font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all flex items-center gap-2"
-              >
-                <i className="fas fa-file-pdf"></i> Download PDF
-              </button>
-              <button 
-                type="button"
-                onClick={() => setSelectedRecord(null)}
-                className="bg-gray-200 text-gray-600 text-[10px] px-6 py-3 rounded-xl font-black uppercase tracking-widest active:scale-95 transition-all"
-              >
-                Tutup
-              </button>
+            <div className="p-4 bg-gray-50 flex gap-2">
+              <button onClick={() => setRecordToDelete(null)} className="flex-1 py-4 rounded-xl bg-white text-gray-400 font-black text-[10px] uppercase border">Batal</button>
+              <button onClick={confirmDelete} className="flex-1 py-4 rounded-xl bg-red-500 text-white font-black text-[10px] uppercase shadow-lg shadow-red-500/20">Ya, Hapus</button>
             </div>
           </div>
         </div>
@@ -291,10 +275,10 @@ const Database: React.FC<DatabaseProps> = ({ data, role, onEdit, onDelete }) => 
   );
 };
 
-const DetailItem: React.FC<{ label: string; value: string; highlight?: string }> = ({ label, value, highlight }) => (
-  <div>
-    <label className="text-[8px] font-black text-gray-400 uppercase block mb-0.5">{label}</label>
-    <p className={`text-[11px] font-bold text-gray-800 border-b border-gray-50 pb-1 ${highlight || ''}`}>{value}</p>
+const DetailItem: React.FC<{ label: string; value: string }> = ({ label, value }) => (
+  <div className="space-y-1">
+    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">{label}</p>
+    <p className="text-xs font-black text-gray-800 uppercase">{value}</p>
   </div>
 );
 
