@@ -11,7 +11,7 @@ interface DashboardProps {
 }
 
 const DEFAULT_TITLE = "Brigade Infanteri 4 / Dewa Ratna";
-const DEFAULT_DESC = "Sistem Informasi Manajemen Hukum (SIMAK) dirancang untuk pemantauan real-time, pendataan akurat, dan analisis tren pelanggaran guna mendukung pembinaan personel yang unggul dan disiplin.";
+const DEFAULT_DESC = "Sistem Informasi Manajemen Hukum (DATA PELANGGARAN BRIGIF 4/DEWA RATNA) dirancang untuk pemantauan real-time, pendataan akurat, dan analisis tren pelanggaran guna mendukung pembinaan personel yang unggul dan disiplin.";
 
 const Dashboard: React.FC<DashboardProps> = ({ data, role, units }) => {
   const [heroTitle, setHeroTitle] = useState(DEFAULT_TITLE);

@@ -178,8 +178,8 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans pb-24 md:pb-28">
-      <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
+    <div className="min-h-full bg-slate-50 flex flex-col font-sans pb-24 md:pb-28">
+      <main className="flex-1 flex flex-col h-full overflow-hidden relative">
         <header className="h-20 flex items-center justify-between px-4 md:px-8 bg-white border-b border-gray-100 z-10">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-3">
@@ -187,7 +187,7 @@ const App: React.FC = () => {
                 <img src={UNIT_LOGO} alt="Logo" className="w-full h-full object-contain p-2" />
               </div>
               <div className="hidden sm:block">
-                <h1 className="text-sm font-black uppercase tracking-tighter text-gray-800">SIMAK</h1>
+                <h1 className="text-sm font-black uppercase tracking-tighter text-gray-800">DATA PELANGGARAN BRIGIF 4/DEWA RATNA</h1>
                 <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Brigif 4 / Dewa Ratna</p>
               </div>
             </div>

@@ -203,6 +203,10 @@ const Database: React.FC<DatabaseProps> = ({ data, role, onEdit, onDelete }) => 
                 <span className="text-accent">{item.perkara}</span>
                 <span className="text-gray-500 italic mt-0.5 normal-case font-semibold">{item.pasal || 'Pasal belum diisi'}</span>
               </div>
+              <div className="flex flex-col text-[9px] font-bold uppercase pt-1 border-t border-slate-50">
+                <span className="text-gray-400 mb-1">Tindakan</span>
+                <span className="text-gray-800">{item.ketTindakan || '-'}</span>
+              </div>
             </div>
 
             <div className="flex gap-2 pt-2 border-t border-gray-50">
@@ -210,7 +214,9 @@ const Database: React.FC<DatabaseProps> = ({ data, role, onEdit, onDelete }) => 
               {role === 'admin' && (
                 <>
                   <button onClick={() => onEdit(item)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-blue-50 text-blue-500 hover:bg-blue-100 transition-all"><i className="fas fa-edit text-[10px]"></i></button>
-                  <button onClick={() => setRecordToDelete(item)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-all"><i className="fas fa-trash text-[10px]"></i></button>
+                  {item.status !== 'Proses Hukum' && (
+                    <button onClick={() => setRecordToDelete(item)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-all"><i className="fas fa-trash text-[10px]"></i></button>
+                  )}
                 </>
               )}
             </div>
@@ -234,7 +240,8 @@ const Database: React.FC<DatabaseProps> = ({ data, role, onEdit, onDelete }) => 
                 <DetailItem label="Jenis Perkara" value={selectedRecord.perkara} />
                 <DetailItem label="Pasal / Dasar Hukum" value={selectedRecord.pasal || '-'} />
                 <DetailItem label="Tanggal" value={selectedRecord.tanggal} />
-                <DetailItem label="Status" value={`${selectedRecord.status} ${selectedRecord.ketTindakan ? `(${selectedRecord.ketTindakan})` : ''}`} />
+                <DetailItem label="Status Hukum" value={selectedRecord.status} />
+                <DetailItem label="Tindakan / Keterangan" value={selectedRecord.ketTindakan || '-'} />
               </div>
               <div className="space-y-2">
                 <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Kronologis Singkat</label>
